@@ -1,0 +1,3 @@
+#!/usr/bin/env bash 
+
+exec < /dev/tty && pnpm dlx cz --hook || true 
