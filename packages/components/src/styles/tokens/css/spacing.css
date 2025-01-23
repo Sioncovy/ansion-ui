@@ -1,0 +1,14 @@
+:root {
+  /* Spacing Scale */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-6: 1.5rem; /* 24px */
+
+  /* Component Specific */
+  --container-padding-x: var(--spacing-4);
+  --card-padding: var(--spacing-4);
+  --button-padding-x: var(--spacing-4);
+  --button-padding-y: var(--spacing-2);
+}

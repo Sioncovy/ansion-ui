@@ -1,0 +1,20 @@
+// src/styles/design-tokens/scss/_spacing.scss
+$spacing-scale: (
+  '1': var(--spacing-1),
+  '2': var(--spacing-2),
+  '3': var(--spacing-3),
+  '4': var(--spacing-4),
+  '6': var(--spacing-6)
+);
+
+@function spacing($size) {
+  @return map.get($spacing-scale, $size);
+}
+
+@mixin padding($size) {
+  padding: spacing($size);
+}
+
+@mixin margin($size) {
+  margin: spacing($size);
+}

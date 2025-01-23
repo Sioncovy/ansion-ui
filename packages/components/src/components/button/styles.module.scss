@@ -1,5 +1,6 @@
+@use '../../styles/tokens/scss/index.scss' as *;
 .button {
-  background-color: #66ccff;
+  background-color: color('primary');
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
