@@ -3,4 +3,7 @@ packages:
   - 'packages/*'
   # 如果有其他目录也需要包含在工作空间中，可以添加
   - 'docs'
-  # - 'examples'
+  - 'playground'
+  # 排除测试和构建产物目录
+  - '!**/test/**'
+  - '!**/dist/**'
