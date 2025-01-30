@@ -5,6 +5,7 @@ import postcss from 'rollup-plugin-postcss'
 import babel from '@rollup/plugin-babel'
 import terser from '@rollup/plugin-terser'
 import alias from '@rollup/plugin-alias'
+import replace from '@rollup/plugin-replace'
 import { defineConfig } from 'rollup'
 import dts from 'rollup-plugin-dts'
 import path from 'path'
@@ -21,9 +22,10 @@ const config = defineConfig([
     input: 'src/index.ts',
     output: [
       {
-        file: 'dist/index.js',
+        file: 'dist/index.cjs',
         format: 'cjs',
-        sourcemap: true
+        sourcemap: true,
+        exports: 'auto'
       },
       {
         file: 'dist/index.mjs',
@@ -33,7 +35,10 @@ const config = defineConfig([
     ],
     external: ['react', 'react-dom', 'classnames'],
     plugins: [
-      // 路径别名配置
+      replace({
+        'process.env.NODE_ENV': JSON.stringify('production'),
+        preventAssignment: true // 防止意外替换变量赋值
+      }),
       alias({
         entries: [
           {
@@ -42,45 +47,80 @@ const config = defineConfig([
           }
         ]
       }),
-      resolve({ extensions }),
-      commonjs(),
+      resolve({
+        extensions,
+        preferBuiltins: true // 优先使用Node.js内置模块
+      }),
+      commonjs({
+        include: /node_modules/ // 仅处理node_modules中的CommonJS模块
+      }),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: true,
-        declarationDir: 'dist/types',
-        exclude: ['**/*.test.tsx', '**/*.test.ts']
+        declaration: false, // 由dts插件单独处理
+        exclude: ['**/*.test.tsx', '**/*.test.ts', '**/*.stories.tsx', '**/__tests__/**']
       }),
       postcss({
-        // extract: 'index.css', // 提取CSS到单独文件
+        extract: 'styles/index.css', // 提取CSS到单独目录
         modules: {
-          generateScopedName: '[name]__[local]__[hash:base64:5]',
-          localsConvention: 'camelCase',
+          generateScopedName: '[hash:base64:8]', // 更短的hash命名
+          localsConvention: 'camelCaseOnly', // 仅驼峰格式
           exclude: /tokens\/css\/.*\.css$/
         },
-        use: ['sass'],
-        inject: true, // 自动注入 CSS
+        use: {
+          sass: {
+            includePaths: [path.resolve(__dirname, 'src/styles')]
+          }
+        },
         minimize: true,
-        extensions: ['.css', '.scss'], // 需要处理的文件扩展名
-        // 添加 PostCSS 插件配置
+        extensions: ['.css', '.scss'],
         plugins: [
           postcssImport({
-            // 可以配置导入路径
-            path: [
-              'src/styles/tokens/css',
-              'src', // 添加 src 目录
-              '.' // 添加根目录
-            ]
+            path: ['src/styles/tokens/css', 'src', '.'],
+            resolve: (id, basedir) => {
+              // 增强路径解析
+              if (id.startsWith('@/')) {
+                return path.resolve(__dirname, 'src', id.slice(2))
+              }
+              return path.resolve(basedir, id)
+            }
           })
         ]
       }),
       babel({
         extensions,
-        babelHelpers: 'bundled',
-        presets: ['@babel/preset-env', ['@babel/preset-react', { runtime: 'automatic' }]],
+        babelHelpers: 'runtime', // 改为runtime模式
+        presets: [
+          [
+            '@babel/preset-env',
+            {
+              targets: '> 0.5%, last 2 versions, not dead', // 明确目标浏览器
+              modules: false,
+              bugfixes: true
+            }
+          ],
+          [
+            '@babel/preset-react',
+            {
+              runtime: 'automatic',
+              importSource: 'react' // 明确导入源
+            }
+          ]
+        ],
+        plugins: [
+          '@babel/plugin-transform-runtime' // 添加runtime插件
+          // 'babel-plugin-optimize-clsx' // 优化CSS类名组合
+        ],
         exclude: 'node_modules/**'
       }),
-
-      terser()
+      terser({
+        format: {
+          comments: false // 移除所有注释
+        },
+        compress: {
+          pure_funcs: ['console.debug'], // 仅保留需要的console方法
+          drop_console: true // 移除所有console
+        }
+      })
     ]
   },
   {
@@ -92,12 +132,15 @@ const config = defineConfig([
     plugins: [
       dts({
         compilerOptions: {
-          baseUrl: 'src'
+          baseUrl: 'src',
+          paths: {
+            // 同步路径别名
+            '@/*': ['./src/*']
+          }
         }
       })
     ],
-    // 修改 external 配置，排除所有 CSS/SCSS 文件
-    external: [/\.(css|scss)$/]
+    external: [/\.(css|scss)$/, /\.s?css$/] // 扩展排除规则
   }
 ])
 

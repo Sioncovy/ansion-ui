@@ -1,6 +1,7 @@
-@use '../../styles/tokens/scss/index.scss' as *;
+@use '../../styles/tokens/scss' as common;
+
 .button {
-  background-color: color('primary');
+  background-color: common.get-color(primary);
   padding: 8px 16px;
   border: none;
   border-radius: 4px;

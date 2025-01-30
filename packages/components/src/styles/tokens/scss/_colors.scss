@@ -1,27 +1,24 @@
 @use 'sass:map';
 
-// Color palette maps
 $colors: (
-  'primary': (
-    '50': var(--color-primary-50),
-    '100': var(--color-primary-100),
-    '500': var(--color-primary-500),
-    '600': var(--color-primary-600)
+  primary: (
+    50: var(--color-primary-50),
+    100: var(--color-primary-100),
+    500: var(--color-primary-500),
+    600: var(--color-primary-600)
   ),
-  'neutral': (
-    '50': var(--color-neutral-50),
-    '100': var(--color-neutral-100),
-    '500': var(--color-neutral-500),
-    '900': var(--color-neutral-900)
+  neutral: (
+    50: var(--color-neutral-50),
+    100: var(--color-neutral-100),
+    500: var(--color-neutral-500),
+    900: var(--color-neutral-900)
   )
 );
 
-// Color functions
-@function color($color, $shade: '500') {
+@function get-color($color, $shade: 500) {
   @return map.get(map.get($colors, $color), $shade);
 }
 
-// Color mixins
-@mixin color-variant($property, $color, $shade: '500') {
-  #{$property}: color($color, $shade);
+@mixin theme-color-variant($property, $color, $shade: 500) {
+  #{$property}: get-color($color, $shade);
 }
